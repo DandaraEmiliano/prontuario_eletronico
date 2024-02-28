@@ -1,0 +1,9 @@
+# Dependency files
+node_modules/
+
+# Automatically generated files
+dist/
+coverage/
+
+# Sensitive files
+.env
