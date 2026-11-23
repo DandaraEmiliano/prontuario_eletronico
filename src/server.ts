@@ -7,8 +7,9 @@ async function start() {
   const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/prontuario";
   const host = process.env.HOST || "127.0.0.1";
   const port = Number(process.env.PORT || 3000);
+  const serverSelectionTimeoutMS = Number(process.env.MONGODB_CONNECT_TIMEOUT_MS || 5000);
 
-  await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect(uri, { serverSelectionTimeoutMS });
   if (process.env.PRONTUARIO_SEED === "true") {
     await seedDemoPatients();
   }

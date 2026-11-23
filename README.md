@@ -2,6 +2,10 @@
 
 Uma demo local de cadastro de pacientes com Node.js, TypeScript, Express e MongoDB. Pelo painel, você pode buscar pacientes por nome ou número do prontuário e consultar, cadastrar, editar e excluir fichas com dados hospitalares.
 
+[**Testar a demo online**](https://prontuario-eletronico-90wz.onrender.com/)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/DandaraEmiliano/prontuario_eletronico)
+
 ![Painel do Prontuário Eletrônico com quatro pacientes de demonstração](docs/painel.png)
 
 ## Experimente
@@ -21,6 +25,10 @@ Abra [http://localhost:3000](http://localhost:3000). O Compose inicia o painel c
 5. Clique em **Excluir** e confirme a remoção.
 
 O painel é uma demonstração local sem autenticação. Use apenas dados fictícios.
+
+## Demo no Render
+
+O Blueprint cria um serviço web gratuito com Docker. O MongoDB da demo roda no mesmo contêiner, em armazenamento temporário. A cada reinício o painel volta aos quatro cadastros de exemplo. Os registros da demo pública ficam visíveis a todos os visitantes. Use apenas dados fictícios.
 
 ## Rode com Node.js
 
