@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -eu
 
-db_path="$(mktemp -d)"
-mongod --bind_ip 127.0.0.1 \
+db_path="$(mktemp -d /tmp/prontuario.XXXXXX)"
+socket_path="$db_path/mongodb.sock"
+export MONGODB_URI="mongodb://${socket_path//\//%2F}/prontuario_render_demo"
+mongod --bind_ip "$socket_path" \
   --dbpath "$db_path" \
   --wiredTigerCacheSizeGB 0.25 \
   --slowOpSampleRate 0 \

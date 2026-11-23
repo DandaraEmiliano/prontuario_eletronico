@@ -11,7 +11,6 @@ WORKDIR /app
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=10000 \
-    MONGODB_URI=mongodb://127.0.0.1:27017/prontuario_render_demo \
     MONGODB_CONNECT_TIMEOUT_MS=45000 \
     PRONTUARIO_SEED=true
 COPY --from=build /usr/local/bin/node /usr/local/bin/node
