@@ -77,3 +77,28 @@ it("serve o painel e indica o estado da conexão", async () => {
   await request(app).get("/api/health").expect(200, { status: "ok" });
   await request(app).get("/api/rota-inexistente").expect(404);
 });
+
+it("persiste, atualiza e limpa os dados hospitalares da ficha", async () => {
+  const hospital = {
+    recordNumber: "PR-501",
+    birthDate: "1996-02-29",
+    bloodType: "A+",
+    allergies: "Penicilina",
+    unit: "Clínica Médica",
+    bed: "12-A",
+    admittedOn: "2026-11-20",
+    careStatus: "admitted",
+    careTeam: "Equipe de Clínica Médica",
+  };
+  const created = await request(app).post("/api/patients").send({ ...patientData, ...hospital }).expect(201);
+  const path = `/api/patients/${created.body._id}`;
+  const result = await request(app).get(path).expect(200);
+  expect(result.body).toMatchObject({ ...patientData, ...hospital });
+
+  await request(app).put(path).send({ admittedOn: "2026-02-29" }).expect(400);
+  await request(app).put(path).send({ careStatus: "unknown" }).expect(400);
+  await request(app).put(path).send({ bloodType: "C+" }).expect(400);
+
+  const updated = await request(app).put(path).send({ bed: "", careStatus: "discharged" }).expect(200);
+  expect(updated.body).toMatchObject({ ...patientData, ...hospital, bed: "", careStatus: "discharged" });
+});

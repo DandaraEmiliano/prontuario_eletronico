@@ -7,6 +7,7 @@ const emptyState = document.querySelector("#empty-state");
 const notice = document.querySelector("#notice");
 const editor = document.querySelector("#editor");
 const patientForm = document.querySelector("#patient-form");
+const details = document.querySelector("#details");
 const removal = document.querySelector("#removal");
 const removalForm = document.querySelector("#removal-form");
 
@@ -17,6 +18,16 @@ const genderLabels = new Map([
   ["undisclosed", "Prefiro não informar"],
 ]);
 const genderValues = new Map(Array.from(genderLabels, ([value, label]) => [label, value]));
+
+const careStatusLabels = new Map([
+  ["admitted", "Internado"],
+  ["observation", "Em observação"],
+  ["discharged", "Alta hospitalar"],
+]);
+const hospitalFields = [
+  "recordNumber", "birthDate", "unit", "bed", "admittedOn", "careStatus", "careTeam", "bloodType", "allergies",
+];
+const dateFormat = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 
 let patients = [];
 let loaded = false;
@@ -59,17 +70,45 @@ function renderPatients() {
   if (!loaded) return;
   count.textContent = patients.length.toLocaleString("pt-BR");
   const query = normalized(search.value);
-  const visiblePatients = patients.filter((patient) => normalized(patient.name).includes(query));
+  const visiblePatients = patients.filter(({ name, recordNumber }) =>
+    normalized(name).includes(query) || (recordNumber && normalized(recordNumber).includes(query)),
+  );
   const fragment = document.createDocumentFragment();
 
   for (const patient of visiblePatients) {
     const row = document.createElement("tr");
-    for (const value of [patient.name, `${patient.age} anos`, genderLabels.get(patient.gender) ?? patient.gender]) {
-      row.insertCell().textContent = value;
+    row.insertCell().textContent = patient.name;
+    row.insertCell().textContent = patient.recordNumber || "—";
+
+    const location = row.insertCell();
+    location.className = "summary-column";
+    location.textContent = patient.unit || (patient.bed ? "" : "—");
+    if (patient.bed) {
+      const bed = document.createElement("span");
+      bed.className = "bed";
+      bed.textContent = `Leito ${patient.bed}`;
+      location.append(bed);
     }
+
+    const situation = row.insertCell();
+    situation.className = "summary-column";
+    if (careStatusLabels.has(patient.careStatus)) {
+      const label = document.createElement("span");
+      label.className = "status";
+      label.dataset.status = patient.careStatus;
+      label.textContent = careStatusLabels.get(patient.careStatus);
+      situation.append(label);
+    } else {
+      situation.textContent = "—";
+    }
+
     const actions = document.createElement("div");
     actions.className = "row-actions";
-    actions.append(actionButton("Editar", patient, openEditor), actionButton("Excluir", patient, openRemoval));
+    actions.append(
+      actionButton("Ver ficha", patient, openDetails),
+      actionButton("Editar", patient, openEditor),
+      actionButton("Excluir", patient, openRemoval),
+    );
     row.insertCell().append(actions);
     fragment.append(row);
   }
@@ -107,8 +146,45 @@ function openEditor(patient) {
     patientForm.elements.name.value = patient.name;
     patientForm.elements.age.value = patient.age;
     patientForm.elements.gender.value = genderLabels.get(patient.gender) ?? patient.gender;
+    for (const field of hospitalFields) {
+      patientForm.elements[field].value = patient[field] ?? "";
+    }
   }
   editor.showModal();
+}
+
+function renderDetails(list, entries) {
+  const groups = entries.map(([label, value, fullWidth]) => {
+    const group = document.createElement("div");
+    const term = document.createElement("dt");
+    const description = document.createElement("dd");
+    if (fullWidth) group.className = "full-width";
+    term.textContent = label;
+    description.textContent = value || "Não informado";
+    group.append(term, description);
+    return group;
+  });
+  list.replaceChildren(...groups);
+}
+
+function openDetails(patient) {
+  document.querySelector("#details-name").textContent = patient.name;
+  renderDetails(document.querySelector("#identity-details"), [
+    ["Número do prontuário", patient.recordNumber],
+    ["Data de nascimento", patient.birthDate && dateFormat.format(new Date(patient.birthDate))],
+    ["Idade", `${patient.age} anos`],
+    ["Gênero", genderLabels.get(patient.gender) ?? patient.gender],
+  ]);
+  renderDetails(document.querySelector("#hospital-details"), [
+    ["Unidade hospitalar", patient.unit],
+    ["Leito", patient.bed],
+    ["Data de admissão", patient.admittedOn && dateFormat.format(new Date(patient.admittedOn))],
+    ["Situação do atendimento", careStatusLabels.get(patient.careStatus)],
+    ["Equipe responsável", patient.careTeam],
+    ["Tipo sanguíneo", patient.bloodType],
+    ["Alergias", patient.allergies, true],
+  ]);
+  details.showModal();
 }
 
 function openRemoval(patient) {
@@ -151,6 +227,10 @@ onSubmit(patientForm, () => {
     age: patientForm.elements.age.valueAsNumber,
     gender: genderValues.get(gender) ?? gender,
   };
+  for (const field of hospitalFields) {
+    const value = patientForm.elements[field].value.trim();
+    if (value || editedPatient?.[field]) data[field] = value;
+  }
   return editedPatient ? api(`/${editedPatient._id}`, "PUT", data) : api("", "POST", data);
 }, "Cadastro salvo.");
 

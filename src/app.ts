@@ -5,6 +5,21 @@ import patientRoutes from "./routes/patientRoutes";
 
 const app = express();
 
+const fieldLabels: Record<string, string> = {
+  name: "nome",
+  age: "idade (inteiro de 0 a 130)",
+  gender: "gênero",
+  recordNumber: "número do prontuário",
+  birthDate: "data de nascimento",
+  bloodType: "tipo sanguíneo",
+  allergies: "alergias",
+  unit: "unidade hospitalar",
+  bed: "leito",
+  admittedOn: "data de admissão",
+  careStatus: "situação do atendimento",
+  careTeam: "equipe responsável",
+};
+
 app.disable("x-powered-by");
 app.use(express.json());
 app.use("/api", (_req, res, next) => {
@@ -40,7 +55,12 @@ const handleError: ErrorRequestHandler = (error, _req, res, next) => {
     return;
   }
   if (error instanceof mongoose.Error.ValidationError || error instanceof mongoose.Error.CastError) {
-    res.status(400).json({ error: "Informe um nome, uma idade inteira entre 0 e 130 e um gênero." });
+    const fields = error instanceof mongoose.Error.ValidationError ? Object.keys(error.errors) : [error.path];
+    const labels = fields.map((field) => fieldLabels[field]).filter(Boolean);
+    const message = labels.length
+      ? `Revise o preenchimento de ${labels.join(", ")}.`
+      : "Dados de cadastro inválidos.";
+    res.status(400).json({ error: message });
     return;
   }
   console.error("Falha na API:", error.name);

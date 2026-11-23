@@ -2,13 +2,18 @@ import { NextFunction, Request, Response } from "express";
 import { isObjectIdOrHexString } from "mongoose";
 import Patient from "../models/patientModel";
 
+const editableFields = [
+  "name", "age", "gender", "recordNumber", "birthDate", "bloodType", "allergies",
+  "unit", "bed", "admittedOn", "careStatus", "careTeam",
+] as const;
+
 function patientFields(body: unknown) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return {};
   }
-  const { name, age, gender } = body as Record<string, unknown>;
+  const values = body as Record<string, unknown>;
   return Object.fromEntries(
-    Object.entries({ name, age, gender }).filter(([, value]) => value !== undefined),
+    editableFields.filter((field) => Object.prototype.hasOwnProperty.call(values, field)).map((field) => [field, values[field]]),
   );
 }
 

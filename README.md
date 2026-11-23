@@ -1,6 +1,6 @@
 # Prontuário Eletrônico
 
-Uma demo local de cadastro de pacientes com Node.js, TypeScript, Express e MongoDB. Pelo painel, você pode buscar pacientes por nome, cadastrar, editar e excluir registros.
+Uma demo local de cadastro de pacientes com Node.js, TypeScript, Express e MongoDB. Pelo painel, você pode buscar pacientes por nome ou número do prontuário e consultar, cadastrar, editar e excluir fichas com dados hospitalares.
 
 ![Painel do Prontuário Eletrônico com quatro pacientes de demonstração](docs/painel.png)
 
@@ -15,9 +15,10 @@ docker compose up --build
 Abra [http://localhost:3000](http://localhost:3000). O Compose inicia o painel com quatro pacientes fictícios e guarda os cadastros em um volume do MongoDB.
 
 1. Clique em **Novo paciente** e cadastre um nome fictício.
-2. Use **Buscar por nome** para localizar o cadastro.
-3. Clique em **Editar** e atualize a idade.
-4. Clique em **Excluir** e confirme a remoção.
+2. Preencha o número do prontuário, a unidade, o leito e a situação do atendimento.
+3. Localize o cadastro pelo número do prontuário e clique em **Ver ficha**.
+4. Clique em **Editar**, mude a situação para **Alta hospitalar** e limpe o leito.
+5. Clique em **Excluir** e confirme a remoção.
 
 O painel é uma demonstração local sem autenticação. Use apenas dados fictícios.
 
@@ -51,12 +52,23 @@ O Express serve o painel estático e a API no mesmo endereço. O painel usa a AP
 | `PUT` | `/api/patients/:id` | Atualiza os campos enviados |
 | `DELETE` | `/api/patients/:id` | Exclui um cadastro e responde com HTTP 204 |
 
-Envie JSON com `name` (texto), `age` (inteiro de 0 a 130) e `gender` (texto). A API retorna HTTP 400 para dados inválidos e HTTP 404 para um identificador válido sem cadastro correspondente.
+Envie JSON com `name` (texto), `age` (inteiro de 0 a 130) e `gender` (texto). A ficha também aceita campos opcionais.
+
+| Informação | Campos |
+| --- | --- |
+| Identificação | `recordNumber` e `birthDate` |
+| Localização e admissão | `unit`, `bed` e `admittedOn` |
+| Atendimento | `careStatus` e `careTeam` |
+| Informações clínicas | `bloodType` e `allergies` |
+
+Envie as datas no formato `AAAA-MM-DD`. A situação usa `admitted`, `observation` ou `discharged`. O tipo sanguíneo usa os grupos A, B, AB ou O seguidos de `+` ou `-`. Use uma string vazia para limpar um campo opcional.
+
+A API retorna HTTP 400 para dados inválidos e HTTP 404 para um identificador válido sem cadastro correspondente.
 
 ```bash
 curl -i http://localhost:3000/api/patients \
   -H 'Content-Type: application/json' \
-  -d '{"name":"Rafa Demo","age":29,"gender":"non-binary"}'
+  -d '{"name":"Rafa Demo","age":29,"gender":"non-binary","recordNumber":"PR-1020","unit":"Clínica Médica","bed":"14-A","careStatus":"admitted"}'
 ```
 
 ## Testes
@@ -65,4 +77,4 @@ curl -i http://localhost:3000/api/patients \
 npm test
 ```
 
-A suíte usa uma instância MongoDB acessível em `127.0.0.1:27017`. Para usar outra instância, defina `MONGODB_TEST_URI`. Os testes criam e removem um banco temporário com nome único. A suíte cobre o cadastro completo, validações, a carga de exemplos e as rotas do painel e de saúde.
+A suíte usa uma instância MongoDB acessível em `127.0.0.1:27017`. Para usar outra instância, defina `MONGODB_TEST_URI`. Os testes criam e removem um banco temporário com nome único. A suíte cobre o cadastro completo, a edição de dados hospitalares, validações, a carga de exemplos e as rotas do painel e de saúde.
