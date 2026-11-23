@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: prontuario-eletronico
+    runtime: docker
+    plan: free
+    region: ohio
+    dockerfilePath: ./Dockerfile.render
+    healthCheckPath: /api/health
+    autoDeployTrigger: "off"
