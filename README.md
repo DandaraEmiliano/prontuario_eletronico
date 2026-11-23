@@ -2,6 +2,8 @@
 
 Uma demo local de cadastro de pacientes com Node.js, TypeScript, Express e MongoDB. Pelo painel, você pode buscar pacientes por nome ou número do prontuário e consultar, cadastrar, editar e excluir fichas com dados hospitalares.
 
+[**Testar a demo online**](https://prontuario-eletronico-90wz.onrender.com/)
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/DandaraEmiliano/prontuario_eletronico)
 
 ![Painel do Prontuário Eletrônico com quatro pacientes de demonstração](docs/painel.png)
